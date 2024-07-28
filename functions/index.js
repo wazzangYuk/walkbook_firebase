@@ -1,19 +1,22 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const functions = require("firebase-functions");
+const admin = require("firebase-admin")
+const auth = require("firebase-auth")
 
-const {onRequest} = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
+var serviceAccount = require("./walkbook-b3b3e-firebase-adminsdk-thjdi-b2a9d0b4a7.json");
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+exports.createCustomToken = functions.https.onCall(async (data, context) => {
+    const uid = data.uid;
+    console.log(data);
+
+    try {
+        const customToken = await admin.auth().createCustomToken(uid);
+        return { token: customToken };
+    } catch (error) {
+        console.error("Error creating custom token:", error);
+        throw new HttpsError("Error creating custom token", error);
+    }
+});
